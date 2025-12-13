@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>发布闲置 - ByGou 百购</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="nav-wrapper">
+        <div class="navbar" style="justify-content: space-between;">
+            <div onclick="history.back()" class="icon-btn"><i class="ri-close-line" style="font-size:24px;"></i></div>
+            <div style="font-weight:700;">发布闲置</div>
+            <button class="pub-submit-btn btn-pill primary" style="padding:8px 20px;" onclick="submitPublish()">发布</button>
+        </div>
+    </div>
+
+    <div class="pub-container">
+        <div class="pub-card">
+            <form id="publishForm">
+                
+                <div class="form-group">
+                    <label class="form-label">宝贝图片</label>
+                    <div class="upload-zone" id="imageGrid" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-btn" style="pointer-events:none;">
+                            <i class="ri-camera-3-line" style="font-size:32px; color:var(--primary)"></i>
+                            <div style="margin-top:8px; font-size:13px; color:var(--text-sec)">点击添加图片 (首张为封面)</div>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">标题</label>
+                    <input type="text" id="pubTitle" class="input-field" placeholder="例如：99新 iPad Air 5 紫色 64G" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">详细描述</label>
+                    <textarea id="pubDesc" class="input-field textarea-field" placeholder="描述一下入手渠道、转手原因和具体瑕疵..." required></textarea>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">价格 (元)</label>
+                        <input type="number" id="pubPrice" class="input-field" placeholder="0.00" style="color:var(--accent-red); font-weight:700;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">分类</label>
+                        <div style="position:relative;">
+                            <select id="pubCat" class="input-field" style="appearance:none;">
+                                <option value="">选择分类</option>
+                                <option value="digital">数码产品</option>
+                                <option value="book">教材资料</option>
+                                <option value="ride">校园代步</option>
+                                <option value="clothes">潮流衣物</option>
+                                <option value="life">生活好物</option>
+                            </select>
+                            <i class="ri-arrow-down-s-line" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-sec);"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">交易地点</label>
+                    <div class="input-field" style="background:var(--bg-base); color:var(--text-sec); display:flex; align-items:center; gap:6px;">
+                        <i class="ri-map-pin-line"></i> <span id="userSchoolDisplay">读取中...</span>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast"><i class="ri-checkbox-circle-fill"></i><span id="toastMsg">Message</span></div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(!sessionStorage.getItem('user_info')) {
+                alert('请先登录');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
