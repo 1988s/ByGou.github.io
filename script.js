@@ -1,226 +1,222 @@
-// 移动端菜单切换
-const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-const navMenu = document.querySelector('.nav-menu');
+/**
+ * ByGou Script - Compliance & Features
+ */
 
-if (mobileMenuBtn && navMenu) {
-    mobileMenuBtn.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
-        mobileMenuBtn.classList.toggle('active');
-    });
-}
-
-// 点击菜单项后关闭菜单
-const navLinks = document.querySelectorAll('.nav-menu a');
-navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        if (navMenu.classList.contains('active')) {
-            navMenu.classList.remove('active');
-            mobileMenuBtn.classList.remove('active');
-        }
-    });
-});
-
-// 平滑滚动
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            const offsetTop = target.offsetTop - 70; // 减去导航栏高度
-            window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
-            });
-        }
-    });
-});
-
-// 滚动时导航栏添加阴影效果
-window.addEventListener('scroll', () => {
-    const nav = document.querySelector('nav');
-    if (window.scrollY > 50) {
-        nav.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-    } else {
-        nav.style.boxShadow = 'none';
-    }
-});
-
-// 滚动进度条
-window.addEventListener('scroll', () => {
-    const scrollProgress = document.querySelector('.scroll-progress');
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const scrollPercentage = (scrollTop / scrollHeight) * 100;
-    
-    if (scrollProgress) {
-        scrollProgress.style.width = scrollPercentage + '%';
-    }
-});
-
-// 返回顶部按钮
-const backToTopBtn = document.querySelector('.back-to-top');
-
-window.addEventListener('scroll', () => {
-    if (window.pageYOffset > 300) {
-        backToTopBtn.classList.add('visible');
-    } else {
-        backToTopBtn.classList.remove('visible');
-    }
-});
-
-backToTopBtn.addEventListener('click', () => {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-});
-
-// 滚动时元素淡入效果
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
+/* --- Configuration & Mock API --- */
+const API = {
+    async login(email, pwd) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if(email && pwd) {
+                    resolve({ 
+                        data: { 
+                            token: "mock-token", 
+                            user: { name: "张同学", school: "北京大学", avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${email}` } 
+                        } 
+                    });
+                } else reject();
+            }, 600);
+        });
+    },
+    async register(name, email, pwd) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({ 
+                    data: { 
+                        token: "mock-token", 
+                        user: { name: name || "新同学", school: "未认证", avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${email}` } 
+                    } 
+                });
+            }, 600);
+        });
+    },
+    async publish(data) { return new Promise(resolve => setTimeout(resolve, 800)); }
 };
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
+/* --- State --- */
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 恢复状态
+    const saved = sessionStorage.getItem('user_info');
+    if (saved) { currentUser = JSON.parse(saved); updateUI(true); }
+    
+    // 动画
+    const obs = new IntersectionObserver(entries => entries.forEach(e => {
+        if(e.isIntersecting) e.target.classList.add('visible');
+    }), { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(e => obs.observe(e));
+    
+    // 全局点击关闭菜单
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('userDropdown');
+        const trigger = document.getElementById('navUserArea');
+        if (menu && menu.classList.contains('show') && !menu.contains(e.target) && !trigger.contains(e.target)) {
+            menu.classList.remove('show');
         }
     });
-}, observerOptions);
 
-// 为需要淡入效果的元素添加观察
-const fadeElements = document.querySelectorAll('.category-item, .feature-item, .showcase-item, .process-item');
-fadeElements.forEach(el => {
-    el.classList.add('fade-in');
-    observer.observe(el);
+    // 发布页逻辑
+    const schoolDisplay = document.getElementById('userSchoolDisplay');
+    if(schoolDisplay && currentUser) schoolDisplay.innerText = currentUser.school;
 });
 
-// 为section标题添加淡入效果
-const sectionHeaders = document.querySelectorAll('.section-header');
-sectionHeaders.forEach(header => {
-    header.classList.add('fade-in');
-    observer.observe(header);
-});
-
-// 按钮点击波纹效果增强
-const buttons = document.querySelectorAll('.btn');
-buttons.forEach(button => {
-    button.addEventListener('click', function(e) {
-        const ripple = document.createElement('span');
-        const rect = this.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const x = e.clientX - rect.left - size / 2;
-        const y = e.clientY - rect.top - size / 2;
-        
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
-        ripple.classList.add('ripple');
-        
-        this.appendChild(ripple);
-        
-        setTimeout(() => {
-            ripple.remove();
-        }, 600);
-    });
-});
-
-// 页面加载动画
-window.addEventListener('load', () => {
-    document.body.style.opacity = '0';
-    setTimeout(() => {
-        document.body.style.transition = 'opacity 0.5s';
-        document.body.style.opacity = '1';
-    }, 100);
-});
-
-// 鼠标悬停视差效果（可选，仅桌面端）
-if (window.innerWidth > 768) {
-    const hero = document.querySelector('.hero');
-    
-    hero.addEventListener('mousemove', (e) => {
-        const { clientX, clientY } = e;
-        const { offsetWidth, offsetHeight } = hero;
-        
-        const xPos = (clientX / offsetWidth - 0.5) * 20;
-        const yPos = (clientY / offsetHeight - 0.5) * 20;
-        
-        const heroContent = hero.querySelector('.hero-content');
-        heroContent.style.transform = `translate(${xPos}px, ${yPos}px)`;
-    });
-    
-    hero.addEventListener('mouseleave', () => {
-        const heroContent = hero.querySelector('.hero-content');
-        heroContent.style.transform = 'translate(0, 0)';
-    });
+/* --- Auth --- */
+async function handleLogin(e) {
+    const btn = e.target;
+    btn.innerText = "登录中...";
+    btn.disabled = true;
+    try {
+        const res = await API.login(document.getElementById('loginEmail').value, document.getElementById('loginPwd').value);
+        currentUser = res.data.user;
+        sessionStorage.setItem('user_info', JSON.stringify(currentUser));
+        updateUI(true);
+        closeModal(null, 'authModal');
+        showToast(`欢迎回来，${currentUser.name}`);
+    } catch(err) { showToast("登录失败，请检查账号"); } 
+    finally { btn.innerText = "立即登录"; btn.disabled = false; }
 }
 
-// 分类项点击动画
-const categoryItems = document.querySelectorAll('.category-item');
-categoryItems.forEach(item => {
-    item.addEventListener('click', function() {
-        this.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            this.style.transform = '';
-        }, 200);
-    });
-});
+async function handleRegister(e) {
+    // 协议勾选检查
+    const agree = document.getElementById('agreeChk');
+    if(!agree.checked) {
+        showToast("请先阅读并同意用户协议");
+        agree.parentElement.style.color = "var(--accent-red)";
+        setTimeout(() => agree.parentElement.style.color = "var(--text-sec)", 1000);
+        return;
+    }
 
-// 二维码容器点击提示
-const qrContainer = document.querySelector('.qr-container');
-if (qrContainer) {
-    qrContainer.addEventListener('click', () => {
-        const tooltip = document.createElement('div');
-        tooltip.textContent = '长按保存二维码';
-        tooltip.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(26, 26, 26, 0.9);
-            color: #fff;
-            padding: 1rem 2rem;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            z-index: 1000;
-            animation: fadeOut 2s forwards;
-        `;
-        
-        document.body.appendChild(tooltip);
-        
-        setTimeout(() => {
-            tooltip.remove();
-        }, 2000);
-    });
+    const btn = e.target;
+    btn.innerText = "注册中...";
+    try {
+        const res = await API.register(document.getElementById('regName').value, document.getElementById('regEmail').value, "pwd");
+        currentUser = res.data.user;
+        sessionStorage.setItem('user_info', JSON.stringify(currentUser));
+        updateUI(true);
+        closeModal(null, 'authModal');
+        showToast("注册成功");
+    } catch(err) { showToast("注册失败"); } 
+    finally { btn.innerText = "注册并登录"; }
 }
 
-// 添加淡出动画
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeOut {
-        0% { opacity: 1; }
-        70% { opacity: 1; }
-        100% { opacity: 0; }
+function logout() {
+    sessionStorage.clear(); currentUser = null; updateUI(false);
+    document.getElementById('userDropdown').classList.remove('show');
+    showToast("已退出登录");
+}
+
+/* --- UI Logic --- */
+function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
+
+function updateUI(isLoggedIn) {
+    const loginBtn = document.getElementById('navLoginBtn');
+    const userArea = document.getElementById('navUserArea');
+    if(!loginBtn || !userArea) return;
+    if (isLoggedIn) {
+        loginBtn.style.display = 'none'; userArea.style.display = 'flex';
+        document.getElementById('userNameDisplay').innerText = currentUser.name;
+        document.getElementById('userAvatarImg').src = currentUser.avatar;
+        const badge = document.getElementById('currentSchool');
+        if(badge) badge.innerText = currentUser.school;
+    } else {
+        loginBtn.style.display = 'block'; userArea.style.display = 'none';
     }
-    
-    .ripple {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.6);
-        pointer-events: none;
-        animation: ripple-animation 0.6s ease-out;
+}
+
+function switchTab(el, id) {
+    document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    if(id === 'home') window.scrollTo({top:0, behavior:'smooth'});
+    if(id === 'cat' || id === 'guide') document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
+
+function handleMobileMine(el) {
+    switchTab(el, 'mine');
+    if(currentUser) showToast(`当前登录: ${currentUser.name}`);
+    else openAuthModal('login');
+}
+
+function selectSchool(name) {
+    const el = document.getElementById('currentSchool');
+    if(el) el.innerText = name;
+    document.querySelectorAll('.school-opt').forEach(opt => opt.classList.remove('active'));
+    closeModal(null, 'schoolModal');
+    if(currentUser) { currentUser.school = name; sessionStorage.setItem('user_info', JSON.stringify(currentUser)); }
+}
+
+/* --- Modals & QR --- */
+function openAuthModal(view) { 
+    document.getElementById('authModal').classList.add('active'); 
+    document.getElementById('loginView').style.display = view === 'login' ? 'block' : 'none';
+    document.getElementById('registerView').style.display = view === 'register' ? 'block' : 'none';
+}
+function switchView(view) { openAuthModal(view); }
+function closeModal(e, id) { if(!e || e.target === document.getElementById(id)) document.getElementById(id).classList.remove('active'); }
+function openSchoolModal() { document.getElementById('schoolModal').classList.add('active'); }
+
+// 协议弹窗
+function openAgreement(e) {
+    if(e) { e.preventDefault(); e.stopPropagation(); }
+    document.getElementById('agreementModal').classList.add('active');
+}
+
+// 二维码生成
+let qrGenerated = false;
+function openQrModal() {
+    document.getElementById('qrModal').classList.add('active');
+    if(!qrGenerated) {
+        const container = document.getElementById('qrcode');
+        container.innerHTML = "";
+        new QRCode(container, {
+            text: "https://u.wechat.com/MHZpcZWcZcedZ2T6VT8qlLg?s=2", // 替换为真实链接
+            width: 170, height: 170,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        qrGenerated = true;
     }
-    
-    @keyframes ripple-animation {
-        to {
-            transform: scale(2);
-            opacity: 0;
+}
+
+/* --- Utils --- */
+function toggleTheme() {
+    const b = document.body;
+    b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').innerText = msg;
+    t.style.top = "20px"; t.style.opacity = "1";
+    setTimeout(() => { t.style.top = "-60px"; t.style.opacity = "0"; }, 2500);
+}
+function checkAuthAndAction() {
+    if(!currentUser) { showToast("请先登录"); openAuthModal('login'); } 
+    else { window.location.href = "publish.html"; }
+}
+
+/* --- Publish Page Image Logic --- */
+function handleImageSelect(e) {
+    const files = e.target.files;
+    const grid = document.getElementById('imageGrid');
+    if(!grid) return;
+    grid.innerHTML = ''; grid.classList.add('has-images');
+    for(let f of files) {
+        const r = new FileReader();
+        r.onload = function(ev) {
+            const img = document.createElement('img');
+            img.src = ev.target.result; img.className = 'preview-img';
+            grid.appendChild(img);
         }
+        r.readAsDataURL(f);
     }
-    
-    .hero-content {
-        transition: transform 0.3s ease;
-    }
-`;
-document.head.appendChild(style);
+}
+async function submitPublish() {
+    const title = document.getElementById('pubTitle').value;
+    const price = document.getElementById('pubPrice').value;
+    if(!title || !price) { showToast("请填写标题和价格"); return; }
+    const btn = document.querySelector('.pub-submit-btn');
+    btn.innerText = "发布中..."; btn.disabled = true;
+    await API.publish();
+    showToast("发布成功！");
+    setTimeout(() => window.location.href = "index.html", 1000);
+}
