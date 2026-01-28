@@ -5,7 +5,7 @@ document.addEventListener('alpine:init', () => {
         config: {
             appName: "白狗回收",
             wechatName: "白狗回收",
-            qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://weixin.qq.com/r/example-placeholder", 
+            qrCodeUrl: "images/qrcode.jpg", 
             contactEmail: "risycn@gmail.com",
             contactWechat: "ByGoup"
         },
