@@ -1,187 +1,471 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ByGou 百购 - 大学生专属二手交易平台</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="icon" type="images/png" href="./images/favicon.png">
-</head>
-<body>
+    <title>白狗回收 - 闲置鞋盒回收 | 48小时极速打款</title>
+    <meta name="description" content="白狗回收专注潮流鞋盒回收服务。支持Nike、Jordan、Yeezy等品牌。拍照提交，先确认再寄出，验收无误48小时内微信打款。">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="白狗回收 - 鞋盒变现更省心">
+    <meta property="og:image" content="https://via.placeholder.com/800x400?text=Share+Image">
 
-    <div class="nav-wrapper">
-        <nav class="navbar">
-            <div style="display:flex; align-items:center; gap:24px;">
-                <div class="logo">ByGou 百购</div>
-                <div class="nav-links">
-                    <a href="#cat" class="nav-link">分类</a>
-                    <a href="#guide" class="nav-link">指南</a>
-                </div>
-            </div>
-            
-            <div style="display:flex; align-items:center; gap:12px;">
-                <button onclick="toggleTheme()" class="icon-btn" title="切换主题"><i class="ri-moon-line"></i></button>
-                <button id="navLoginBtn" class="btn-pill" onclick="openAuthModal('login')">登录</button>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS & Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        black: '#0a0a0a',
+                        white: '#ffffff',
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'Roboto', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                        'grid-pattern-light': "linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)",
+                    },
+                    backgroundSize: {
+                        'grid': '40px 40px',
+                    },
+                    animation: {
+                        'marquee': 'marquee 20s linear infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 基础样式 -->
+    <style>
+        [x-cloak] { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 噪点纹理 */
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* 交互动画类 */
+        .reveal-base {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 延迟类 */
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+    </style>
+
+    <!-- Alpine.js -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('landingPage', () => ({
+                config: {
+                    appName: "白狗回收",
+                    wechatName: "白狗回收",
+                    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://weixin.qq.com/r/example-placeholder", 
+                    contactEmail: "support@baigou.com",
+                    contactWechat: "baigou_support"
+                },
+
+                // 跑马灯文字
+                marqueeText: "NIKE / JORDAN / DUNK / YEEZY / NEW BALANCE / SALOMON / ASICS /",
+
+                features: [
+                    { icon: "camera", title: "拍照即估", desc: "无需寄出，在线先看价" },
+                    { icon: "lock-key", title: "价格锁定", desc: "确认回收即锁定金额" },
+                    { icon: "clock-afternoon", title: "48H 打款", desc: "验收无误极速到账" }
+                ],
                 
-                <div id="navUserArea" class="user-pill" style="display:none;" onclick="event.stopPropagation(); toggleUserMenu()">
-                    <span id="userNameDisplay" class="user-name">同学</span>
-                    <img id="userAvatarImg" src="" class="user-avatar">
-                    <div class="user-dropdown-float" id="userDropdown">
-                        <a href="#" onclick="showToast('功能开发中')"><i class="ri-file-list-2-line"></i> 我的发布</a>
-                        <a href="#" onclick="showToast('暂无消息')"><i class="ri-message-3-line"></i> 消息通知</a>
-                        <div class="divider"></div>
-                        <a href="#" onclick="logout()" class="text-danger"><i class="ri-logout-box-r-line"></i> 退出登录</a>
+                steps: [
+                    { step: "01", title: "拍照提交", desc: "小程序上传照片", icon: "camera" },
+                    { step: "02", title: "获得报价", desc: "客服在线估价", icon: "chat-dots" },
+                    { step: "03", title: "预约发货", desc: "确认后寄出快递", icon: "package" },
+                    { step: "04", title: "验收打款", desc: "48小时内到账", icon: "bank" }
+                ],
+
+                faqs: [
+                    { q: "邮费谁来承担？", a: "寄出邮费需您先垫付。成交后我们会根据当前活动规则提供相应的邮费补贴。" },
+                    { q: "会不会到手刀？", a: "绝不。只要实物与您提交的照片一致，我们承诺不压价。诚信是我们的底线。" },
+                    { q: "多久能收到钱？", a: "仓库签收并验收通过后，48小时内款项会直接打入您的微信零钱。" },
+                    { q: "只收鞋盒吗？", a: "是的，我们专注于回收闲置的正品鞋盒，不需要鞋子。" }
+                ],
+
+                modalOpen: false,
+                isWeChat: /MicroMessenger/i.test(navigator.userAgent),
+                isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+                copied: false,
+                activeFaq: 0,
+                loaded: false,
+
+                init() {
+                    // 页面加载后触发入场动画
+                    setTimeout(() => { this.loaded = true }, 100);
+                },
+
+                handleMainCTA() {
+                    if (!this.isMobile) {
+                        const footer = document.getElementById('footer');
+                        if(footer) footer.scrollIntoView({ behavior: 'smooth' });
+                        return;
+                    }
+                    this.modalOpen = true;
+                },
+
+                copyText() {
+                    const text = this.config.wechatName;
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text).then(() => this.showCopied());
+                    } else {
+                        this.showCopied();
+                    }
+                },
+
+                showCopied() {
+                    this.copied = true;
+                    setTimeout(() => this.copied = false, 2000);
+                },
+
+                toggleFaq(index) {
+                    this.activeFaq = this.activeFaq === index ? null : index;
+                }
+            }));
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-black antialiased font-sans" x-data="landingPage">
+    <!-- 全局噪点层 -->
+    <div class="noise-bg"></div>
+
+    <!-- 顶部导航 (玻璃态) -->
+    <nav class="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10 text-white h-16 transition-all duration-300 transform" :class="loaded ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'">
+        <div class="container mx-auto px-4 h-full flex justify-between items-center">
+            <div class="flex items-center gap-2 font-bold text-lg tracking-tight cursor-pointer hover:opacity-80 transition-opacity" @click="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center">
+                    <i class="ph-bold ph-recycle"></i>
+                </div>
+                <span x-text="config.appName"></span>
+            </div>
+            <a href="#footer" class="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2 border border-white/20 rounded-full hover:bg-white/10 active:scale-95 transform transition-transform">
+                联系客服
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero 区域 (黑底网格) -->
+    <header class="relative bg-black text-white pt-32 pb-20 overflow-hidden">
+        <!-- 黑色背景网格 -->
+        <div class="absolute inset-0 bg-grid-pattern bg-grid opacity-20 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none"></div>
+
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <!-- 标签 -->
+                <div 
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm mb-8 reveal-base"
+                    :class="loaded ? 'reveal-visible' : ''"
+                >
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-xs font-mono text-gray-400">RECYCLE SYSTEM ONLINE</span>
+                </div>
+
+                <!-- 巨大标题 -->
+                <h1 
+                    class="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none reveal-base delay-100"
+                    :class="loaded ? 'reveal-visible' : ''"
+                >
+                    鞋盒变现<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">更省心</span>
+                </h1>
+
+                <!-- 描述 -->
+                <p 
+                    class="text-lg md:text-xl text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed reveal-base delay-200"
+                    :class="loaded ? 'reveal-visible' : ''"
+                >
+                    拍照提交 · 确认后寄出 · 48H打款<br>
+                    专业的闲置潮流鞋盒回收平台
+                </p>
+
+                <!-- 按钮组 -->
+                <div 
+                    class="flex flex-col md:flex-row items-center justify-center gap-4 reveal-base delay-300"
+                    :class="loaded ? 'reveal-visible' : ''"
+                >
+                    <button 
+                        @click="handleMainCTA"
+                        class="w-full md:w-auto bg-white text-black h-14 px-8 rounded-full font-bold text-lg hover:scale-105 active:scale-95 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                        立即提交回收 <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <i class="ph-fill ph-check-circle text-green-500"></i>
+                        <span>已回收 10,000+ 个</span>
                     </div>
                 </div>
             </div>
-        </nav>
-    </div>
-
-    <div class="mobile-tab-bar" id="mobileTabs">
-        <div class="tab-item active" onclick="switchTab(this, 'home')"><i class="ri-home-5-line"></i><span>首页</span></div>
-        <div class="tab-item" onclick="switchTab(this, 'cat')"><i class="ri-apps-2-line"></i><span>分类</span></div>
-        <div class="tab-item" onclick="checkAuthAndAction()">
-            <div class="tab-fab"><i class="ri-add-line"></i></div>
         </div>
-        <div class="tab-item" onclick="switchTab(this, 'guide')"><i class="ri-compass-3-line"></i><span>指南</span></div>
-        <div class="tab-item" onclick="handleMobileMine(this)"><i class="ri-user-smile-line"></i><span>我的</span></div>
-    </div>
+    </header>
 
-    <div class="container">
-        <section class="hero">
-            <div class="reveal">
-                <div class="school-badge" onclick="openSchoolModal()">
-                    <i class="ri-map-pin-user-fill" style="color:var(--primary)"></i> <span id="currentSchool">选择学校</span>
-                </div>
-                <h1 class="hero-title">百购校园<br>让价值流动起来</h1>
-                <p class="hero-desc">100% 学生实名认证 · 极速面交 · 拒绝套路</p>
-                <div class="search-bar">
-                    <i class="ri-search-line search-icon"></i>
-                    <input type="text" placeholder="搜一下: iPad, 教材, 吉他..." class="search-input">
-                    <button class="btn-pill">搜索</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="cat" class="reveal">
-            <div class="section-header"><h3>热门分区</h3><span class="more-link">查看全部 <i class="ri-arrow-right-s-line"></i></span></div>
-            <div class="bento-grid">
-                <div class="bento-card span-2 row-2 bg-gradient-blue" onclick="checkAuthAndAction()">
-                    <i class="ri-macbook-line card-bg-icon"></i>
-                    <div class="card-content"><div class="card-title">数码产品</div><div class="card-sub">手机 / 平板 / 配件</div></div>
-                    <div class="card-arrow"><i class="ri-arrow-right-line"></i></div>
-                </div>
-                <div class="bento-card bg-gradient-orange" onclick="checkAuthAndAction()">
-                    <i class="ri-book-open-line card-bg-icon"></i><div class="card-content"><div class="card-title">教材资料</div></div>
-                </div>
-                <div class="bento-card bg-gradient-green" onclick="checkAuthAndAction()">
-                    <i class="ri-bike-line card-bg-icon"></i><div class="card-content"><div class="card-title">校园代步</div></div>
-                </div>
-                 <div class="bento-card span-2 dark-card" onclick="checkAuthAndAction()">
-                    <i class="ri-t-shirt-line card-bg-icon"></i>
-                    <div class="card-content"><div class="card-title text-light">潮流衣物</div><div class="card-sub text-dim">球鞋 / 卫衣 / 配饰</div></div>
-                    <div class="card-arrow light"><i class="ri-arrow-right-line"></i></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="guide" class="reveal">
-            <h3 class="section-header-title">避坑指南</h3>
-            <div class="guide-scroll">
-                <div class="guide-item" onclick="showToast('文章功能开发中')"><div class="guide-icon"><i class="ri-smartphone-line"></i></div><div><div class="guide-title">二手手机验机流程</div><div class="guide-sub">避免买到组装机</div></div></div>
-                <div class="guide-item" onclick="showToast('文章功能开发中')"><div class="guide-icon"><i class="ri-alert-line"></i></div><div><div class="guide-title">防诈骗预警</div><div class="guide-sub">“先款后货”不可信</div></div></div>
-                <div class="guide-item" onclick="showToast('文章功能开发中')"><div class="guide-icon"><i class="ri-t-shirt-line"></i></div><div><div class="guide-title">球鞋鉴定技巧</div><div class="guide-sub">三步辨别真假</div></div></div>
-            </div>
-        </section>
-
-        <section id="contact" class="reveal">
-            <div class="bento-grid">
-                <div class="bento-card span-4" style="flex-direction: row; align-items: center; justify-content: space-between; min-height: 100px;">
-                    <div><div class="card-title">遇到问题？</div><div class="card-sub">添加客服同学，或关注公众号反馈</div></div>
-                    <button class="btn-pill primary" onclick="openQrModal()" style="display: flex; align-items: center; gap: 6px;">
-                        <i class="ri-qr-code-line"></i> <span>联系我们</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <footer class="legal-footer">
-            <p style="margin-bottom:6px; font-weight:600; opacity:0.9;">ByGou 百购 © 2025</p>
-            <p>免责声明：本平台仅提供校园闲置信息发布服务，不介入资金交易。</p>
-            <p>交易过程中请务必线下当面核验商品，谨防诈骗，风险自担。</p>
-        </footer>
-    </div>
-
-    <div class="modal-wrap" id="authModal" onclick="closeModal(event, 'authModal')">
-        <div class="modal-box">
-            <div id="loginView">
-                <h3 class="modal-title">登录 ByGou</h3>
-                <input type="email" id="loginEmail" class="input-field" placeholder="学校邮箱" value="student@edu.cn">
-                <input type="password" id="loginPwd" class="input-field" placeholder="密码" value="123456">
-                <button onclick="handleLogin(event)" class="btn-pill full-width">立即登录</button>
-                <div class="auth-switch">没有账号？ <span onclick="switchView('register')">去注册</span></div>
-            </div>
-            
-            <div id="registerView" style="display:none;">
-                <h3 class="modal-title">加入我们</h3>
-                <input type="text" id="regName" class="input-field" placeholder="昵称">
-                <input type="email" id="regEmail" class="input-field" placeholder="学校邮箱">
-                <input type="password" id="regPwd" class="input-field" placeholder="设置密码">
-                
-                <div class="checkbox-wrapper">
-                     <input type="checkbox" id="agreeChk">
-                     <label for="agreeChk">我已阅读并同意 <span class="link-text" onclick="openAgreement(event)">《用户协议》</span></label>
-                </div>
-
-                <button onclick="handleRegister(event)" class="btn-pill full-width">注册并登录</button>
-                <div class="auth-switch">已有账号？ <span onclick="switchView('login')">去登录</span></div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal-wrap" id="qrModal" onclick="closeModal(event, 'qrModal')">
-        <div class="modal-box" style="text-align: center; max-width: 320px;">
-            <h3 class="modal-title">关注 ByGou</h3>
-            <p style="color:var(--text-sec); font-size:13px; margin-bottom:20px;">扫码联系客服 / 关注公众号</p>
-            
-            <div style="background:#fff; padding:15px; border-radius:20px; margin-bottom:20px; display:inline-block; border:1px solid var(--border-light);">
-                <div id="qrcode"></div>
-            </div>
-            
-            <button class="btn-pill full-width" onclick="closeModal(null, 'qrModal')">关闭</button>
+    <!-- 跑马灯条 (分割线) -->
+    <div class="bg-yellow-400 text-black py-3 overflow-hidden border-y-2 border-black font-bold font-mono uppercase tracking-widest text-sm relative z-20">
+        <div class="whitespace-nowrap flex animate-marquee">
+            <template x-for="i in 10">
+                <span class="mx-4 flex items-center gap-4">
+                    <span x-text="marqueeText"></span>
+                    <i class="ph-fill ph-star-four"></i>
+                </span>
+            </template>
         </div>
     </div>
 
-    <div class="modal-wrap" id="agreementModal" onclick="closeModal(event, 'agreementModal')">
-        <div class="modal-box" style="text-align: left; max-height: 70vh; display:flex; flex-direction:column;">
-            <h3 class="modal-title">用户协议</h3>
-            <div style="overflow-y: auto; flex:1; padding-right:5px; font-size:13px; color:var(--text-main); line-height:1.6;">
-                <p><strong>重要提示：</strong>请您仔细阅读以下条款。</p><br>
-                <p>1. <strong>身份认证</strong>：本平台仅限在校大学生使用。</p>
-                <p>2. <strong>交易方式</strong>：平台提倡“线下当面交易，钱货当面两清”。</p>
-                <p>3. <strong>资金安全</strong>：平台不提供资金托管，不经手任何交易款项。</p>
-                <p>4. <strong>免责声明</strong>：本平台仅提供信息展示空间，不对交易物品的质量、真伪及合法性承担责任。产生纠纷请自行协商解决。</p>
-                <p>5. <strong>违禁品</strong>：严禁发布法律法规禁止的物品。</p>
-            </div>
-            <button class="btn-pill full-width primary" style="margin-top:20px;" onclick="closeModal(null, 'agreementModal')">我已知晓</button>
-        </div>
-    </div>
-
-    <div class="modal-wrap" id="schoolModal" onclick="closeModal(event, 'schoolModal')">
-        <div class="modal-box">
-            <h3 class="modal-title">选择分站</h3>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="school-opt active" onclick="selectSchool('北京大学')">北京大学 <i class="ri-check-line"></i></button>
-                <button class="school-opt" onclick="selectSchool('清华大学')">清华大学</button>
-                <button class="school-opt" onclick="selectSchool('复旦大学')">复旦大学</button>
+    <!-- 核心承诺 (高密度网格) -->
+    <section class="py-20 px-4 bg-gray-50 border-b border-gray-200">
+        <div class="container mx-auto max-w-5xl">
+            <div class="grid md:grid-cols-3 gap-0 border border-gray-200 bg-white shadow-sm">
+                <template x-for="(feature, index) in features">
+                    <div 
+                        class="p-10 border-b md:border-b-0 md:border-r border-gray-200 last:border-0 hover:bg-gray-50 transition-colors group reveal-base"
+                        x-intersect.half="$el.classList.add('reveal-visible')"
+                        :style="`transition-delay: ${index * 100}ms`"
+                    >
+                        <div class="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center text-2xl mb-6 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300 ease-out">
+                            <i :class="`ph-fill ph-${feature.icon}`"></i>
+                        </div>
+                        <h3 class="font-bold text-xl mb-2 text-black" x-text="feature.title"></h3>
+                        <p class="text-sm text-gray-500 leading-relaxed" x-text="feature.desc"></p>
+                    </div>
+                </template>
             </div>
         </div>
+    </section>
+
+    <!-- 流程图 (板块化) -->
+    <section class="py-20 px-4 bg-white relative">
+        <!-- 浅色网格背景 -->
+        <div class="absolute inset-0 bg-grid-pattern-light bg-grid opacity-30 pointer-events-none"></div>
+
+        <div class="container mx-auto max-w-4xl relative z-10">
+            <div 
+                class="text-center mb-16 reveal-base" 
+                x-intersect.half="$el.classList.add('reveal-visible')"
+            >
+                <h2 class="text-3xl md:text-4xl font-black mb-4">简单四步，变废为宝</h2>
+                <p class="text-gray-500">标准化回收流程，全程透明可查</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <template x-for="(step, index) in steps">
+                    <div 
+                        class="bg-gray-50 border border-gray-200 p-6 rounded-2xl relative overflow-hidden group hover:border-black hover:-translate-y-1 hover:shadow-lg transition-all duration-300 reveal-base"
+                        x-intersect.half="$el.classList.add('reveal-visible')"
+                        :style="`transition-delay: ${index * 100}ms`"
+                    >
+                        <!-- 序号水印 -->
+                        <div class="absolute -right-2 -top-4 text-8xl font-black text-gray-100 group-hover:text-gray-200 transition-colors pointer-events-none select-none duration-300" x-text="step.step"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center mb-4 bg-white group-hover:bg-black group-hover:text-white transition-colors duration-300">
+                                <i :class="`ph-bold ph-${step.icon}`"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-1" x-text="step.title"></h4>
+                            <p class="text-xs text-gray-500 group-hover:text-gray-700 transition-colors" x-text="step.desc"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ (列表式) -->
+    <section class="py-20 px-4 bg-black text-white">
+        <div class="container mx-auto max-w-3xl">
+            <h2 
+                class="text-3xl font-black mb-10 reveal-base"
+                x-intersect.half="$el.classList.add('reveal-visible')"
+            >
+                常见问题
+            </h2>
+            <div class="space-y-4">
+                <template x-for="(faq, index) in faqs" :key="index">
+                    <div 
+                        class="border-b border-gray-800 pb-4 reveal-base"
+                        x-intersect.half="$el.classList.add('reveal-visible')"
+                        :style="`transition-delay: ${index * 50}ms`"
+                    >
+                        <button 
+                            @click="toggleFaq(index)"
+                            class="w-full flex justify-between items-start text-left py-2 hover:text-gray-300 transition-colors group"
+                        >
+                            <span class="font-bold text-lg pr-8 group-hover:translate-x-1 transition-transform" x-text="faq.q"></span>
+                            <i class="ph-bold ph-plus transition-transform duration-300 mt-1" :class="{'rotate-45 text-white': activeFaq === index, 'text-gray-500': activeFaq !== index}"></i>
+                        </button>
+                        <div x-show="activeFaq === index" x-collapse>
+                            <div class="pt-2 pb-4 text-gray-400 leading-relaxed text-sm border-l-2 border-gray-800 pl-4 mt-2 ml-1">
+                                <p x-text="faq.a"></p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer (机能风) -->
+    <footer id="footer" class="bg-gray-50 pt-20 pb-10 px-4 border-t border-gray-200">
+        <div class="container mx-auto max-w-5xl">
+            <div class="grid md:grid-cols-2 gap-12 mb-16 items-center">
+                <!-- 左侧：Slogan -->
+                <div class="text-center md:text-left">
+                    <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto md:mx-0">
+                        <i class="ph-bold ph-recycle"></i>
+                    </div>
+                    <h2 class="text-4xl font-black mb-2 tracking-tight">让闲置回归价值</h2>
+                    <p class="text-gray-500">专业、透明、高效的潮流包装回收方案</p>
+                </div>
+
+                <!-- 右侧：联系卡片 -->
+                <div class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-8 hover:shadow-lg transition-shadow duration-300">
+                    <!-- 二维码 -->
+                    <div class="w-32 h-32 bg-gray-100 rounded-xl shrink-0 p-2 group overflow-hidden cursor-zoom-in">
+                        <img :src="config.qrCodeUrl" class="w-full h-full object-cover rounded-lg mix-blend-multiply group-hover:scale-110 transition-transform duration-300">
+                    </div>
+                    <!-- 文字信息 -->
+                    <div class="text-center md:text-left space-y-4 w-full">
+                        <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100 group hover:border-gray-300 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="ph-fill ph-wechat-logo text-green-600 text-xl group-hover:scale-110 transition-transform"></i>
+                                <div class="text-left">
+                                    <div class="text-[10px] text-gray-400 font-bold uppercase">客服微信</div>
+                                    <div class="font-bold font-mono" x-text="config.contactWechat"></div>
+                                </div>
+                            </div>
+                            <button @click="copyText" class="text-xs font-bold bg-black text-white px-3 py-1 rounded hover:bg-gray-800 active:scale-95 transition-all">复制</button>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100 group hover:border-gray-300 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <i class="ph-fill ph-envelope text-blue-600 text-xl group-hover:scale-110 transition-transform"></i>
+                                <div class="text-left">
+                                    <div class="text-[10px] text-gray-400 font-bold uppercase">客服邮箱</div>
+                                    <div class="font-bold font-mono" x-text="config.contactEmail"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400 font-mono uppercase">
+                <div class="flex gap-4 mb-4 md:mb-0">
+                    <a href="#" class="hover:text-black transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-black transition-colors">Terms of Service</a>
+                </div>
+                <div>© 2026 BAIGOU RECYCLE. ALL RIGHTS RESERVED.</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 弹窗 (机能卡片) -->
+    <div 
+        x-show="modalOpen" 
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        x-cloak
+    >
+        <div 
+            class="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            x-show="modalOpen"
+            x-transition.opacity
+            @click="modalOpen = false"
+        ></div>
+
+        <div 
+            class="relative w-full max-w-sm bg-white rounded-2xl p-0 overflow-hidden shadow-2xl"
+            x-show="modalOpen"
+            x-transition:enter="ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-8"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-8"
+        >
+            <!-- 弹窗头部 -->
+            <div class="bg-black text-white p-6 flex justify-between items-center">
+                <h3 class="font-bold text-lg">前往小程序</h3>
+                <button @click="modalOpen = false" class="text-gray-400 hover:text-white transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <div class="p-8 text-center">
+                <!-- 微信环境 -->
+                <template x-if="isWeChat">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-6 font-medium">长按下方二维码识别进入</p>
+                        <div class="bg-gray-100 p-4 rounded-xl inline-block border-2 border-black border-dashed group hover:border-solid transition-all">
+                            <img :src="config.qrCodeUrl" class="w-48 h-48 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 非微信环境 -->
+                <template x-if="!isWeChat">
+                    <div>
+                        <div class="mb-6">
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">第一步：复制名称</p>
+                            <div class="flex gap-2">
+                                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex items-center px-4 font-bold font-mono text-lg select-all" x-text="config.wechatName"></div>
+                                <button @click="copyText" class="bg-black text-white px-4 rounded-lg font-bold hover:bg-gray-800 active:scale-95 transition-all" :class="copied ? 'bg-green-600' : ''">
+                                    <span x-show="!copied">复制</span>
+                                    <span x-show="copied"><i class="ph-bold ph-check"></i></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">第二步：微信搜索</p>
+                            <div class="text-sm text-gray-600">打开微信粘贴搜索，或保存下方二维码扫一扫</div>
+                            <div class="mt-4 mx-auto w-32 h-32 bg-gray-100 rounded p-2">
+                                <img :src="config.qrCodeUrl" class="w-full h-full object-cover mix-blend-multiply">
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
     </div>
-
-    <div id="toast"><i class="ri-information-fill" style="color:var(--primary)"></i> <span id="toastMsg">提示</span></div>
-
-    <script src="script.js"></script>
 </body>
 </html>
