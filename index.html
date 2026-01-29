@@ -6,25 +6,175 @@
     <title>白狗回收 - 闲置鞋盒回收 | 48小时极速打款</title>
     <meta name="description" content="白狗回收专注潮流鞋盒回收服务。支持Nike、Jordan、Yeezy等品牌。拍照提交，先确认再寄出，验收无误48小时内微信打款。">
     
+    <!-- Open Graph -->
     <meta property="og:title" content="白狗回收 - 鞋盒变现更省心">
     <meta property="og:image" content="https://via.placeholder.com/800x400?text=Share+Image">
 
-    <link rel="stylesheet" href="css/style.css">
-
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <script src="js/tailwind.config.js"></script>
-    
+    <!-- Tailwind CSS & Config -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        black: '#0a0a0a',
+                        white: '#ffffff',
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'Roboto', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                        'grid-pattern-light': "linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)",
+                    },
+                    backgroundSize: {
+                        'grid': '40px 40px',
+                    },
+                    animation: {
+                        'marquee': 'marquee 20s linear infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-    <script src="js/app.js"></script>
+    <!-- 基础样式 -->
+    <style>
+        [x-cloak] { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 噪点纹理 */
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* 交互动画类 */
+        .reveal-base {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 延迟类 */
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+    </style>
+
+    <!-- Alpine.js -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('landingPage', () => ({
+                config: {
+                    appName: "白狗回收",
+                    wechatName: "白狗回收",
+                    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://mp.weixin.qq.com/a/~Zp9ml1qFwSm4yfE-fqOavw~~", 
+                    contactEmail: "risycn@gmail.com",
+                    contactWechat: "BYGOUP"
+                },
+
+                // 跑马灯文字
+                marqueeText: "NIKE / JORDAN / DUNK / YEEZY / NEW BALANCE / SALOMON / ASICS /",
+
+                features: [
+                    { icon: "camera", title: "拍照即估", desc: "无需寄出，在线先看价" },
+                    { icon: "lock-key", title: "价格锁定", desc: "确认回收即锁定金额" },
+                    { icon: "clock-afternoon", title: "48H 打款", desc: "验收无误极速到账" }
+                ],
+                
+                steps: [
+                    { step: "01", title: "拍照提交", desc: "小程序上传照片", icon: "camera" },
+                    { step: "02", title: "获得报价", desc: "客服在线估价", icon: "chat-dots" },
+                    { step: "03", title: "预约发货", desc: "确认后寄出快递", icon: "package" },
+                    { step: "04", title: "验收打款", desc: "48小时内到账", icon: "bank" }
+                ],
+
+                faqs: [
+                    { q: "邮费谁来承担？", a: "寄出邮费需您先垫付。成交后我们会根据当前活动规则提供相应的邮费补贴。" },
+                    { q: "会不会到手刀？", a: "绝不。只要实物与您提交的照片一致，我们承诺不压价。诚信是我们的底线。" },
+                    { q: "多久能收到钱？", a: "仓库签收并验收通过后，48小时内款项会直接打入您的微信零钱。" },
+                    { q: "只收鞋盒吗？", a: "是的，我们专注于回收闲置的正品鞋盒，不需要鞋子。" }
+                ],
+
+                modalOpen: false,
+                isWeChat: /MicroMessenger/i.test(navigator.userAgent),
+                isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+                copied: false,
+                activeFaq: 0,
+                loaded: false,
+
+                init() {
+                    // 页面加载后触发入场动画
+                    setTimeout(() => { this.loaded = true }, 100);
+                },
+
+                handleMainCTA() {
+                    if (!this.isMobile) {
+                        const footer = document.getElementById('footer');
+                        if(footer) footer.scrollIntoView({ behavior: 'smooth' });
+                        return;
+                    }
+                    this.modalOpen = true;
+                },
+
+                copyText() {
+                    const text = this.config.wechatName;
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text).then(() => this.showCopied());
+                    } else {
+                        this.showCopied();
+                    }
+                },
+
+                showCopied() {
+                    this.copied = true;
+                    setTimeout(() => this.copied = false, 2000);
+                },
+
+                toggleFaq(index) {
+                    this.activeFaq = this.activeFaq === index ? null : index;
+                }
+            }));
+        });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-50 text-black antialiased font-sans" x-data="landingPage">
+    <!-- 全局噪点层 -->
     <div class="noise-bg"></div>
 
+    <!-- 顶部导航 (玻璃态) -->
     <nav class="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10 text-white h-16 transition-all duration-300 transform" :class="loaded ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'">
         <div class="container mx-auto px-4 h-full flex justify-between items-center">
             <div class="flex items-center gap-2 font-bold text-lg tracking-tight cursor-pointer hover:opacity-80 transition-opacity" @click="window.scrollTo({top: 0, behavior: 'smooth'})">
@@ -39,12 +189,15 @@
         </div>
     </nav>
 
+    <!-- Hero 区域 (黑底网格) -->
     <header class="relative bg-black text-white pt-32 pb-20 overflow-hidden">
+        <!-- 黑色背景网格 -->
         <div class="absolute inset-0 bg-grid-pattern bg-grid opacity-20 pointer-events-none"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none"></div>
 
         <div class="container mx-auto px-4 relative z-10">
             <div class="max-w-4xl mx-auto text-center">
+                <!-- 标签 -->
                 <div 
                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm mb-8 reveal-base"
                     :class="loaded ? 'reveal-visible' : ''"
@@ -53,6 +206,7 @@
                     <span class="text-xs font-mono text-gray-400">RECYCLE SYSTEM ONLINE</span>
                 </div>
 
+                <!-- 巨大标题 -->
                 <h1 
                     class="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none reveal-base delay-100"
                     :class="loaded ? 'reveal-visible' : ''"
@@ -61,6 +215,7 @@
                     <span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">更省心</span>
                 </h1>
 
+                <!-- 描述 -->
                 <p 
                     class="text-lg md:text-xl text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed reveal-base delay-200"
                     :class="loaded ? 'reveal-visible' : ''"
@@ -69,6 +224,7 @@
                     专业的闲置潮流鞋盒回收平台
                 </p>
 
+                <!-- 按钮组 -->
                 <div 
                     class="flex flex-col md:flex-row items-center justify-center gap-4 reveal-base delay-300"
                     :class="loaded ? 'reveal-visible' : ''"
@@ -88,6 +244,7 @@
         </div>
     </header>
 
+    <!-- 跑马灯条 (分割线) -->
     <div class="bg-yellow-400 text-black py-3 overflow-hidden border-y-2 border-black font-bold font-mono uppercase tracking-widest text-sm relative z-20">
         <div class="whitespace-nowrap flex animate-marquee">
             <template x-for="i in 10">
@@ -99,6 +256,7 @@
         </div>
     </div>
 
+    <!-- 核心承诺 (高密度网格) -->
     <section class="py-20 px-4 bg-gray-50 border-b border-gray-200">
         <div class="container mx-auto max-w-5xl">
             <div class="grid md:grid-cols-3 gap-0 border border-gray-200 bg-white shadow-sm">
@@ -119,7 +277,9 @@
         </div>
     </section>
 
+    <!-- 流程图 (板块化) -->
     <section class="py-20 px-4 bg-white relative">
+        <!-- 浅色网格背景 -->
         <div class="absolute inset-0 bg-grid-pattern-light bg-grid opacity-30 pointer-events-none"></div>
 
         <div class="container mx-auto max-w-4xl relative z-10">
@@ -138,6 +298,7 @@
                         x-intersect.half="$el.classList.add('reveal-visible')"
                         :style="`transition-delay: ${index * 100}ms`"
                     >
+                        <!-- 序号水印 -->
                         <div class="absolute -right-2 -top-4 text-8xl font-black text-gray-100 group-hover:text-gray-200 transition-colors pointer-events-none select-none duration-300" x-text="step.step"></div>
                         
                         <div class="relative z-10">
@@ -153,6 +314,7 @@
         </div>
     </section>
 
+    <!-- FAQ (列表式) -->
     <section class="py-20 px-4 bg-black text-white">
         <div class="container mx-auto max-w-3xl">
             <h2 
@@ -186,9 +348,11 @@
         </div>
     </section>
 
+    <!-- Footer (机能风) -->
     <footer id="footer" class="bg-gray-50 pt-20 pb-10 px-4 border-t border-gray-200">
         <div class="container mx-auto max-w-5xl">
             <div class="grid md:grid-cols-2 gap-12 mb-16 items-center">
+                <!-- 左侧：Slogan -->
                 <div class="text-center md:text-left">
                     <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto md:mx-0">
                         <i class="ph-bold ph-recycle"></i>
@@ -197,10 +361,13 @@
                     <p class="text-gray-500">专业、透明、高效的潮流包装回收方案</p>
                 </div>
 
+                <!-- 右侧：联系卡片 -->
                 <div class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-8 hover:shadow-lg transition-shadow duration-300">
+                    <!-- 二维码 -->
                     <div class="w-32 h-32 bg-gray-100 rounded-xl shrink-0 p-2 group overflow-hidden cursor-zoom-in">
                         <img :src="config.qrCodeUrl" class="w-full h-full object-cover rounded-lg mix-blend-multiply group-hover:scale-110 transition-transform duration-300">
                     </div>
+                    <!-- 文字信息 -->
                     <div class="text-center md:text-left space-y-4 w-full">
                         <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100 group hover:border-gray-300 transition-colors">
                             <div class="flex items-center gap-3">
@@ -230,11 +397,12 @@
                     <a href="#" class="hover:text-black transition-colors">Privacy Policy</a>
                     <a href="#" class="hover:text-black transition-colors">Terms of Service</a>
                 </div>
-                <div>© 2026 BYGOU RECYCLE. ALL RIGHTS RESERVED.</div>
+                <div>© 2025 BYGOU RECYCLE. ALL RIGHTS RESERVED.</div>
             </div>
         </div>
     </footer>
 
+    <!-- 弹窗 (机能卡片) -->
     <div 
         x-show="modalOpen" 
         class="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -257,12 +425,14 @@
             x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 translate-y-8"
         >
+            <!-- 弹窗头部 -->
             <div class="bg-black text-white p-6 flex justify-between items-center">
                 <h3 class="font-bold text-lg">前往小程序</h3>
                 <button @click="modalOpen = false" class="text-gray-400 hover:text-white transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
 
             <div class="p-8 text-center">
+                <!-- 微信环境 -->
                 <template x-if="isWeChat">
                     <div>
                         <p class="text-sm text-gray-500 mb-6 font-medium">长按下方二维码识别进入</p>
@@ -272,6 +442,7 @@
                     </div>
                 </template>
 
+                <!-- 非微信环境 -->
                 <template x-if="!isWeChat">
                     <div>
                         <div class="mb-6">
