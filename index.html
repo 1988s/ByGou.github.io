@@ -27,11 +27,7 @@
                         'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
                         'grid-pattern-light': "linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)",
                     },
-                    backgroundSize: { 'grid': '40px 40px' },
-                    animation: { 'marquee': 'marquee 20s linear infinite' },
-                    keyframes: {
-                        marquee: { '0%': { transform: 'translateX(0%)' }, '100%': { transform: 'translateX(-100%)' } }
-                    }
+                    backgroundSize: { 'grid': '40px 40px' }
                 }
             }
         }
@@ -59,6 +55,15 @@
         .delay-100 { transition-delay: 100ms; }
         .delay-200 { transition-delay: 200ms; }
         .delay-300 { transition-delay: 300ms; }
+
+        /* [修复] 手动定义跑马灯动画，确保在任何环境下都能运行 */
+        .animate-marquee {
+            animation: marquee 20s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 
     <!-- 4. 业务逻辑 (直接写在页面里，并处理了加载顺序) -->
