@@ -1,405 +1,108 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="scroll-smooth">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>白狗回收 - 闲置鞋盒回收 | 48小时极速打款</title>
-    
-    <!-- 1. 引入图标库和 Tailwind CSS (网络资源) -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>白狗回收 | 在线自主回收</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- 2. Tailwind 配置 (直接写在页面里) -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        black: '#0a0a0a',
-                        white: '#ffffff',
-                        gray: { 50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 800: '#1f2937', 900: '#111827' }
-                    },
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'Roboto', 'sans-serif'],
-                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
-                    },
-                    backgroundImage: {
-                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
-                        'grid-pattern-light': "linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)",
-                    },
-                    backgroundSize: { 'grid': '40px 40px' }
-                }
-            }
-        }
-    </script>
-
-    <!-- 3. 自定义样式 (直接写在页面里) -->
     <style>
-        [x-cloak] { display: none !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* 噪点纹理背景 */
-        .noise-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 50; opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            letter-spacing: -0.03em;
         }
-
-        /* 交互动画 */
-        .reveal-base {
-            opacity: 0; transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .reveal-visible { opacity: 1; transform: translateY(0); }
-        .delay-100 { transition-delay: 100ms; }
-        .delay-200 { transition-delay: 200ms; }
-        .delay-300 { transition-delay: 300ms; }
-
-        /* [修复] 手动定义跑马灯动画，确保在任何环境下都能运行 */
-        .animate-marquee {
-            animation: marquee 20s linear infinite;
-        }
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
+        /* 当你没有上传图片时，背景会显示灰色圆点占位 */
+        .qr-placeholder-bg {
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 10px 10px;
         }
     </style>
-
-    <!-- 4. 业务逻辑 (直接写在页面里，并处理了加载顺序) -->
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('landingPage', () => ({
-                config: {
-                    appName: "白狗回收",
-                    wechatName: "白狗回收",
-                    // 这里的二维码使用的是网络占位图，方便手机直接查看
-                    // 如果您有自己的图片，请替换为以 https:// 开头的网址
-                    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://weixin.qq.com/r/example-placeholder", 
-                    contactEmail: "support@baigou.com",
-                    contactWechat: "baigou_support"
-                },
-                marqueeText: "NIKE / JORDAN / DUNK / YEEZY / NEW BALANCE / SALOMON / ASICS /",
-                features: [
-                    { icon: "camera", title: "拍照即估", desc: "无需寄出，在线先看价" },
-                    { icon: "lock-key", title: "价格锁定", desc: "确认回收即锁定金额" },
-                    { icon: "clock-afternoon", title: "48H 打款", desc: "验收无误极速到账" }
-                ],
-                steps: [
-                    { step: "01", title: "拍照提交", desc: "小程序上传照片", icon: "camera" },
-                    { step: "02", title: "获得报价", desc: "客服在线估价", icon: "chat-dots" },
-                    { step: "03", title: "预约发货", desc: "确认后寄出快递", icon: "package" },
-                    { step: "04", title: "验收打款", desc: "48小时内到账", icon: "bank" }
-                ],
-                faqs: [
-                    { q: "邮费谁来承担？", a: "寄出邮费需您先垫付。成交后我们会根据当前活动规则提供相应的邮费补贴。" },
-                    { q: "会不会到手刀？", a: "绝不。只要实物与您提交的照片一致，我们承诺不压价。诚信是我们的底线。" },
-                    { q: "多久能收到钱？", a: "仓库签收并验收通过后，48小时内款项会直接打入您的微信零钱。" },
-                    { q: "只收鞋盒吗？", a: "是的，我们专注于回收闲置的正品鞋盒，不需要鞋子。" }
-                ],
-                modalOpen: false,
-                isWeChat: /MicroMessenger/i.test(navigator.userAgent),
-                isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-                copied: false,
-                activeFaq: 0,
-                loaded: false,
-                init() { setTimeout(() => { this.loaded = true }, 100); },
-                handleMainCTA() {
-                    if (!this.isMobile) {
-                        const footer = document.getElementById('footer');
-                        if(footer) footer.scrollIntoView({ behavior: 'smooth' });
-                        return;
-                    }
-                    this.modalOpen = true;
-                },
-                copyText() {
-                    const text = this.config.wechatName;
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(text).then(() => this.showCopied());
-                    } else { this.showCopied(); }
-                },
-                showCopied() {
-                    this.copied = true;
-                    setTimeout(() => this.copied = false, 2000);
-                },
-                toggleFaq(index) {
-                    this.activeFaq = this.activeFaq === index ? null : index;
-                }
-            }));
-        });
-    </script>
-
-    <!-- 5. Alpine.js (核心库，最后加载) -->
-    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-50 text-black antialiased font-sans" x-data="landingPage">
-    <!-- 全局噪点层 -->
-    <div class="noise-bg"></div>
+<body class="bg-white text-black antialiased">
 
-    <!-- 顶部导航 -->
-    <nav class="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10 text-white h-16 transition-all duration-300 transform" :class="loaded ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'">
-        <div class="container mx-auto px-4 h-full flex justify-between items-center">
-            <div class="flex items-center gap-2 font-bold text-lg tracking-tight cursor-pointer hover:opacity-80 transition-opacity" @click="window.scrollTo({top: 0, behavior: 'smooth'})">
-                <!-- LOGO ICON (SVG) -->
-                <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center p-1">
-                    <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" class="w-full h-full fill-current"><path d="M222.14,103.42l-10.1-23.55L228.3,73.16a8,8,0,0,0-6.6-14.72l-19.62,8.8-19.63-8.8a8,8,0,1,0-6.6,14.72l16.29,7.3-10.79,25.17A96,96,0,0,0,32,104a8,8,0,0,0,16,0,80,80,0,0,1,149.27-36.91l6.73,15.71-12.7,5.69A8,8,0,1,0,198,103.11l16.26-7.29,5.78,13.48a8,8,0,1,0,14.7-6.3ZM128,216a80,80,0,0,1-67.6-121.64A8,8,0,0,0,46.85,86,96,96,0,1,0,128,216Zm80-64a8,8,0,0,1-8,8H171.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L171.31,144H200A8,8,0,0,1,208,152Z"></path></svg>
-                </div>
-                <span x-text="config.appName"></span>
-            </div>
-            <a href="#footer" class="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2 border border-white/20 rounded-full hover:bg-white/10 active:scale-95 transform transition-transform">
-                联系客服
-            </a>
+    <!-- 极简顶部 Header -->
+    <header class="fixed top-0 w-full py-10 px-10 flex justify-between items-center z-50">
+        <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span class="text-sm font-bold tracking-widest uppercase">白狗回收</span>
         </div>
-    </nav>
-
-    <!-- Hero 区域 -->
-    <header class="relative bg-black text-white pt-32 pb-20 overflow-hidden">
-        <div class="absolute inset-0 bg-grid-pattern bg-grid opacity-20 pointer-events-none"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none"></div>
-
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="max-w-4xl mx-auto text-center">
-                <div 
-                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm mb-8 reveal-base"
-                    :class="loaded ? 'reveal-visible' : ''"
-                >
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span class="text-xs font-mono text-gray-400">RECYCLE SYSTEM ONLINE</span>
-                </div>
-
-                <h1 
-                    class="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none reveal-base delay-100"
-                    :class="loaded ? 'reveal-visible' : ''"
-                >
-                    鞋盒变现<br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">更省心</span>
-                </h1>
-
-                <p 
-                    class="text-lg md:text-xl text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed reveal-base delay-200"
-                    :class="loaded ? 'reveal-visible' : ''"
-                >
-                    拍照提交 · 确认后寄出 · 48H打款<br>
-                    专业的闲置潮流鞋盒回收平台
-                </p>
-
-                <div 
-                    class="flex flex-col md:flex-row items-center justify-center gap-4 reveal-base delay-300"
-                    :class="loaded ? 'reveal-visible' : ''"
-                >
-                    <button 
-                        @click="handleMainCTA"
-                        class="w-full md:w-auto bg-white text-black h-14 px-8 rounded-full font-bold text-lg hover:scale-105 active:scale-95 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                        立即提交回收 <i class="ph-bold ph-arrow-right"></i>
-                    </button>
-                    <div class="flex items-center gap-2 text-sm text-gray-500">
-                        <i class="ph-fill ph-check-circle text-green-500"></i>
-                        <span>已回收 10,000+ 个</span>
-                    </div>
-                </div>
-            </div>
+        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em]">
+            Warehouse Direct
         </div>
     </header>
 
-    <!-- 跑马灯条 -->
-    <div class="bg-yellow-400 text-black py-3 overflow-hidden border-y-2 border-black font-bold font-mono uppercase tracking-widest text-sm relative z-20">
-        <div class="whitespace-nowrap flex animate-marquee">
-            <template x-for="i in 10">
-                <span class="mx-4 flex items-center gap-4">
-                    <span x-text="marqueeText"></span>
-                    <i class="ph-fill ph-star-four"></i>
-                </span>
-            </template>
-        </div>
-    </div>
+    <main class="min-h-screen flex flex-col items-center justify-center px-6">
+        
+        <!-- 核心引导区 Hero Section -->
+        <div class="max-w-screen-sm w-full text-center">
+            <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-8">
+                在线提交，<br>发往仓库。
+            </h1>
+            
+            <p class="text-slate-400 text-sm md:text-base font-medium mb-16 tracking-wide">
+                拍照上传 · 自主寄送 · 自动结算
+            </p>
 
-    <!-- 核心承诺 -->
-    <section class="py-20 px-4 bg-gray-50 border-b border-gray-200">
-        <div class="container mx-auto max-w-5xl">
-            <div class="grid md:grid-cols-3 gap-0 border border-gray-200 bg-white shadow-sm">
-                <template x-for="(feature, index) in features">
-                    <div 
-                        class="p-10 border-b md:border-b-0 md:border-r border-gray-200 last:border-0 hover:bg-gray-50 transition-colors group reveal-base"
-                        x-intersect.half="$el.classList.add('reveal-visible')"
-                        :style="`transition-delay: ${index * 100}ms`"
-                    >
-                        <div class="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center text-2xl mb-6 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300 ease-out">
-                            <i :class="`ph-fill ph-${feature.icon}`"></i>
-                        </div>
-                        <h3 class="font-bold text-xl mb-2 text-black" x-text="feature.title"></h3>
-                        <p class="text-sm text-gray-500 leading-relaxed" x-text="feature.desc"></p>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </section>
-
-    <!-- 流程图 -->
-    <section class="py-20 px-4 bg-white relative">
-        <div class="absolute inset-0 bg-grid-pattern-light bg-grid opacity-30 pointer-events-none"></div>
-
-        <div class="container mx-auto max-w-4xl relative z-10">
-            <div 
-                class="text-center mb-16 reveal-base" 
-                x-intersect.half="$el.classList.add('reveal-visible')"
-            >
-                <h2 class="text-3xl md:text-4xl font-black mb-4">简单四步，变废为宝</h2>
-                <p class="text-gray-500">标准化回收流程，全程透明可查</p>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <template x-for="(step, index) in steps">
-                    <div 
-                        class="bg-gray-50 border border-gray-200 p-6 rounded-2xl relative overflow-hidden group hover:border-black hover:-translate-y-1 hover:shadow-lg transition-all duration-300 reveal-base"
-                        x-intersect.half="$el.classList.add('reveal-visible')"
-                        :style="`transition-delay: ${index * 100}ms`"
-                    >
-                        <div class="absolute -right-2 -top-4 text-8xl font-black text-gray-100 group-hover:text-gray-200 transition-colors pointer-events-none select-none duration-300" x-text="step.step"></div>
-                        <div class="relative z-10">
-                            <div class="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center mb-4 bg-white group-hover:bg-black group-hover:text-white transition-colors duration-300">
-                                <i :class="`ph-bold ph-${step.icon}`"></i>
-                            </div>
-                            <h4 class="font-bold text-lg mb-1" x-text="step.title"></h4>
-                            <p class="text-xs text-gray-500 group-hover:text-gray-700 transition-colors" x-text="step.desc"></p>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="py-20 px-4 bg-black text-white">
-        <div class="container mx-auto max-w-3xl">
-            <h2 
-                class="text-3xl font-black mb-10 reveal-base"
-                x-intersect.half="$el.classList.add('reveal-visible')"
-            >
-                常见问题
-            </h2>
-            <div class="space-y-4">
-                <template x-for="(faq, index) in faqs" :key="index">
-                    <div 
-                        class="border-b border-gray-800 pb-4 reveal-base"
-                        x-intersect.half="$el.classList.add('reveal-visible')"
-                        :style="`transition-delay: ${index * 50}ms`"
-                    >
-                        <button 
-                            @click="toggleFaq(index)"
-                            class="w-full flex justify-between items-start text-left py-2 hover:text-gray-300 transition-colors group"
+            <!-- 核心交互：二维码入口 -->
+            <div class="relative inline-block group">
+                <div class="w-48 h-48 md:w-56 md:h-56 p-4 bg-white border border-slate-100 rounded-2xl transition-all duration-700 group-hover:border-green-500 group-hover:shadow-2xl group-hover:shadow-green-50/50">
+                    <div class="w-full h-full qr-placeholder-bg rounded-lg flex items-center justify-center overflow-hidden">
+                        
+                        <!-- 替换二维码说明： -->
+                        <!-- 将下面的 src 属性替换为你真实的二维码图片链接 -->
+                        <img 
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=WhiteDogRecycling" 
+                            alt="小程序二维码" 
+                            class="w-full h-full object-contain p-2"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                         >
-                            <span class="font-bold text-lg pr-8 group-hover:translate-x-1 transition-transform" x-text="faq.q"></span>
-                            <i class="ph-bold ph-plus transition-transform duration-300 mt-1" :class="{'rotate-45 text-white': activeFaq === index, 'text-gray-500': activeFaq !== index}"></i>
-                        </button>
-                        <div x-show="activeFaq === index" x-collapse>
-                            <div class="pt-2 pb-4 text-gray-400 leading-relaxed text-sm border-l-2 border-gray-800 pl-4 mt-2 ml-1">
-                                <p x-text="faq.a"></p>
-                            </div>
-                        </div>
+                        
+                        <!-- 图片加载失败时的备用占位符 (SVG) -->
+                        <svg class="hidden w-24 h-24 text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <rect x="2" y="2" width="6" height="6" />
+                            <rect x="16" y="2" width="6" height="6" />
+                            <rect x="2" y="16" width="6" height="6" />
+                            <path d="M10 2h4M2 10v4M16 10h6M10 16h4" />
+                        </svg>
+
                     </div>
-                </template>
+                </div>
+                <!-- 引导标签 -->
+                <div class="mt-8 opacity-20 group-hover:opacity-100 transition-opacity duration-700">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.5em]">Scan to Submit</span>
+                </div>
             </div>
         </div>
-    </section>
+
+        <!-- 三步流程 -->
+        <div class="fixed bottom-24 w-full px-10">
+            <div class="container mx-auto flex justify-between items-center max-w-4xl border-t border-slate-50 pt-10">
+                <div class="text-center flex-1">
+                    <span class="text-[10px] font-bold text-slate-200 block mb-2 tracking-widest">STEP 01</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">拍照提交</span>
+                </div>
+                <div class="w-10 h-[1px] bg-slate-50"></div>
+                <div class="text-center flex-1">
+                    <span class="text-[10px] font-bold text-slate-200 block mb-2 tracking-widest">STEP 02</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">发往仓库</span>
+                </div>
+                <div class="w-10 h-[1px] bg-slate-50"></div>
+                <div class="text-center flex-1">
+                    <span class="text-[10px] font-bold text-slate-200 block mb-2 tracking-widest">STEP 03</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">极速到账</span>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <!-- Footer -->
-    <footer id="footer" class="bg-gray-50 pt-20 pb-10 px-4 border-t border-gray-200">
-        <div class="container mx-auto max-w-5xl">
-            <div class="grid md:grid-cols-2 gap-12 mb-16 items-center">
-                <div class="text-center md:text-left">
-                    <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center p-2 mx-auto md:mx-0 mb-4">
-                        <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" class="w-full h-full fill-current"><path d="M222.14,103.42l-10.1-23.55L228.3,73.16a8,8,0,0,0-6.6-14.72l-19.62,8.8-19.63-8.8a8,8,0,1,0-6.6,14.72l16.29,7.3-10.79,25.17A96,96,0,0,0,32,104a8,8,0,0,0,16,0,80,80,0,0,1,149.27-36.91l6.73,15.71-12.7,5.69A8,8,0,1,0,198,103.11l16.26-7.29,5.78,13.48a8,8,0,1,0,14.7-6.3ZM128,216a80,80,0,0,1-67.6-121.64A8,8,0,0,0,46.85,86,96,96,0,1,0,128,216Zm80-64a8,8,0,0,1-8,8H171.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L171.31,144H200A8,8,0,0,1,208,152Z"></path></svg>
-                    </div>
-                    <h2 class="text-4xl font-black mb-2 tracking-tight">让闲置回归价值</h2>
-                    <p class="text-gray-500">专业、透明、高效的潮流包装回收方案</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-8 hover:shadow-lg transition-shadow duration-300">
-                    <div class="w-32 h-32 bg-gray-100 rounded-xl shrink-0 p-2 group overflow-hidden cursor-zoom-in">
-                        <img :src="config.qrCodeUrl" class="w-full h-full object-cover rounded-lg mix-blend-multiply group-hover:scale-110 transition-transform duration-300">
-                    </div>
-                    <div class="text-center md:text-left space-y-4 w-full">
-                        <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100 group hover:border-gray-300 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <i class="ph-fill ph-wechat-logo text-green-600 text-xl group-hover:scale-110 transition-transform"></i>
-                                <div class="text-left">
-                                    <div class="text-[10px] text-gray-400 font-bold uppercase">客服微信</div>
-                                    <div class="font-bold font-mono" x-text="config.contactWechat"></div>
-                                </div>
-                            </div>
-                            <button @click="copyText" class="text-xs font-bold bg-black text-white px-3 py-1 rounded hover:bg-gray-800 active:scale-95 transition-all">复制</button>
-                        </div>
-                        <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100 group hover:border-gray-300 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <i class="ph-fill ph-envelope text-blue-600 text-xl group-hover:scale-110 transition-transform"></i>
-                                <div class="text-left">
-                                    <div class="text-[10px] text-gray-400 font-bold uppercase">客服邮箱</div>
-                                    <div class="font-bold font-mono" x-text="config.contactEmail"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400 font-mono uppercase">
-                <div class="flex gap-4 mb-4 md:mb-0">
-                    <a href="#" class="hover:text-black transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-black transition-colors">Terms of Service</a>
-                </div>
-                <div>© 2026 BAIGOU RECYCLE. ALL RIGHTS RESERVED.</div>
-            </div>
+    <footer class="fixed bottom-10 w-full px-10 flex justify-between items-center text-[10px] text-slate-200 font-bold uppercase tracking-widest">
+        <p>© 2024 BAIGOU</p>
+        <div class="flex space-x-6 text-slate-300">
+            <span>高效</span>
+            <span>自主</span>
+            <span>环保</span>
         </div>
     </footer>
 
-    <!-- 弹窗 -->
-    <div x-show="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" x-cloak>
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" x-show="modalOpen" x-transition.opacity @click="modalOpen = false"></div>
-        <div class="relative w-full max-w-sm bg-white rounded-2xl p-0 overflow-hidden shadow-2xl"
-            x-show="modalOpen"
-            x-transition:enter="ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-8"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 translate-y-8">
-            <div class="bg-black text-white p-6 flex justify-between items-center">
-                <h3 class="font-bold text-lg">前往小程序</h3>
-                <button @click="modalOpen = false" class="text-gray-400 hover:text-white transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
-            </div>
-            <div class="p-8 text-center">
-                <template x-if="isWeChat">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-6 font-medium">长按下方二维码识别进入</p>
-                        <div class="bg-gray-100 p-4 rounded-xl inline-block border-2 border-black border-dashed group hover:border-solid transition-all">
-                            <img :src="config.qrCodeUrl" class="w-48 h-48 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300">
-                        </div>
-                    </div>
-                </template>
-                <template x-if="!isWeChat">
-                    <div>
-                        <div class="mb-6">
-                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">第一步：复制名称</p>
-                            <div class="flex gap-2">
-                                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex items-center px-4 font-bold font-mono text-lg select-all" x-text="config.wechatName"></div>
-                                <button @click="copyText" class="bg-black text-white px-4 rounded-lg font-bold hover:bg-gray-800 active:scale-95 transition-all" :class="copied ? 'bg-green-600' : ''">
-                                    <span x-show="!copied">复制</span>
-                                    <span x-show="copied"><i class="ph-bold ph-check"></i></span>
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">第二步：微信搜索</p>
-                            <div class="text-sm text-gray-600">打开微信粘贴搜索，或保存下方二维码扫一扫</div>
-                            <div class="mt-4 mx-auto w-32 h-32 bg-gray-100 rounded p-2">
-                                <img :src="config.qrCodeUrl" class="w-full h-full object-cover mix-blend-multiply">
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
